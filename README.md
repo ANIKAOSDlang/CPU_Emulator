@@ -19,10 +19,10 @@ Outline the features of virtual CPU:
  5.Enable basic input/output operations:
          ● simulated I/O devices (keyboard, display), and integrate them.
          ● Test with I/O-intensive programs.
-6. Add advanced CPU features:
+6. Adding advanced CPU features:
        ●  branching and control flow instructions and addsupport for subroutines and interrupts
        ● Integrate a simple pipeline mechanism.
-7.Optimize the emulator for better performance:
+7.Optimizing the emulator for better performance:
          ● Profile the emulator to identify bottlenecks, Optimize critical code paths.
          ● Enhance the assembler for better instruction encoding.
 8.Thoroughly test and debug the emulator:
