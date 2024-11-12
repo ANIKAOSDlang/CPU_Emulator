@@ -1,8 +1,8 @@
-#include <iostream>
+#include <bits/stdc++.h>
 #include <fstream>
 #include <sstream>
 #include <vector>
-
+#include<map>
 using namespace std;
 
 struct Instruction {
@@ -26,26 +26,49 @@ vector<Instruction> readInstructions(string filename) {
 }
 
 void executeInstruction(Instruction& inst, int& reg) {
-    if (inst.opcode == "LOAD") {
+    if (inst.opcode == "00") {
         reg = inst.operand1;
-    } else if (inst.opcode == "ADD") {
+    } else if (inst.opcode == "01") {
         reg += inst.operand1;
-    } else if (inst.opcode == "STORE") {
+    } else if (inst.opcode == "10") {
         cout << reg << endl;
-    } else if (inst.opcode == "SUB") {
+    } else if (inst.opcode == "11") {
         reg -= inst.operand1;
-    } else if (inst.opcode == "HALT") {
+    } else if (inst.opcode == "1111") {
         exit(0);
     }
 }
+map<string, string> opcodeMap = {
+    {"LOAD", "00"},
+    {"ADD", "01"},
+    {"STORE", "10"},
+    {"SUB", "11"},
+    {"HALT", "1111"}
+};
 
-int main() {
-    int reg = 0;
-    vector<Instruction> instructions = readInstructions("instructions.txt");
+void assemble(string filename) {
+    fstream inputFile(filename);
+    fstream outputFile("machine_code.txt");
 
-    for (Instruction& inst : instructions) {
-        executeInstruction(inst, reg);
+    string line;
+    while (getline(inputFile, line)) {
+        istringstream iss(line);
+        string opcode, operand1, operand2;
+        iss >> opcode >> operand1 >> operand2;
+        string machineCode = opcodeMap[opcode] + " " + operand1 + " " + operand2;
+        outputFile << machineCode << endl;
     }
 
+    inputFile.close();
+    outputFile.close();
+}
+int main() {
+   
+    assemble("instructions.txt"); 
+    vector<Instruction> instruction = readInstructions("machine_code.txt");
+     int reg = 0;
+    for (Instruction& inst : instruction) {
+        executeInstruction(inst, reg);
+    }
     return 0;
 }
