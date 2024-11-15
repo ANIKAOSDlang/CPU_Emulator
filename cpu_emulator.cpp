@@ -65,10 +65,15 @@ void assemble(string filename) {
 int main() {
    
     assemble("instructions.txt"); 
-    vector<Instruction> instruction = readInstructions("machine_code.txt");
-     int reg = 0;
-    for (Instruction& inst : instruction) {
-        executeInstruction(inst, reg);
+    vector<Instruction> instructions = readInstructions("machine_code.txt");
+    int reg = 0;  
+    int pc = 0;   
+    Instruction ir; 
+    
+    while (pc < instructions.size()) {
+        ir = instructions[pc];  
+        executeInstruction(ir, reg); 
+        pc++;
     }
     return 0;
 }
