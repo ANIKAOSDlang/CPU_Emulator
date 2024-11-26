@@ -1,0 +1,24 @@
+Documentation:
+
+Overview:
+This C++ code implements a simple assembler and simulator for a hypothetical machine with a limited instruction set. It takes assembly code as input, translates it into machine code, and then executes the machine code to simulate the behavior of the machine.
+Key Components:
+1.	Instruction Structure:
+o	Instruction struct: Defines the basic structure of an instruction, consisting of an opcode and two operands.
+2.	Reading Instructions:
+o	readInstructions function: Reads assembly instructions from a specified file, parses each line, and creates an Instruction object for each instruction.
+3.	Executing Instructions:
+o	executeInstruction function: Takes an Instruction object and a register value as input. It interprets the opcode and performs the corresponding operation on the register. The supported opcodes are: 
+	LOAD: Loads a value into the register.
+	ADD: Adds a value to the register.
+	STORE: Prints the value of the register.
+	SUB: Subtracts a value from the register.
+	HALT: Terminates the program.
+4.	Assembling Instructions:
+o	assemble function: Reads assembly code from a specified file, translates each assembly instruction into its corresponding machine code equivalent using a predefined opcode map, and writes the machine code to a new file named "machine_code.txt".
+5.	Main Function:
+o	Calls the assemble function to generate machine code.
+o	Reads the generated machine code using the readInstructions function.
+o	Initializes a register to 0.
+o	Iterates over each instruction in the machine code and executes it using the executeInstruction function.
+
