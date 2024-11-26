@@ -10,7 +10,25 @@ struct Instruction
     string opcode;
     int operand1, operand2;
 };
+class Memory
+{
+public:
+    Memory(int size) : memory(size, 0) {}
 
+    int read(int address)
+    {
+        return address;
+    }
+
+    void write(int address, int value)
+    {
+        memory[address] = value;
+        cout << memory[address] << endl;
+    }
+
+private:
+    vector<int> memory;
+};
 vector<Instruction> readInstructions(string filename)
 {
     vector<Instruction> instructions;
@@ -28,40 +46,48 @@ vector<Instruction> readInstructions(string filename)
     return instructions;
 }
 
-void executeInstruction(Instruction &inst, vector<int> &regs)
+void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory)
 {
     int reg_num = 0;
-    int value = inst.operand1;
+    regs[1] = inst.operand1;
+
     if (inst.opcode == "00")
     {
-        regs[reg_num] = value;
+
+        regs[reg_num] = memory.read(regs[1] );
     }
     else if (inst.opcode == "01")
     {
-        regs[reg_num] += value;
+
+        regs[reg_num] += regs[1] ;
     }
     else if (inst.opcode == "10")
     {
-        cout << regs[reg_num] << endl;
+        memory.write(regs[1] , regs[reg_num]);
     }
     else if (inst.opcode == "11")
     {
-        regs[reg_num] -= value;
+
+        regs[reg_num] -= regs[1] ;
     }
-    else if(inst.opcode =="000")
+    else if (inst.opcode == "000")
     {
-        regs[reg_num] &= value ;
+
+        regs[reg_num] &= regs[1] ;
     }
-     else if(inst.opcode =="001")
+    else if (inst.opcode == "001")
     {
-        regs[reg_num] |= value;
+
+        regs[reg_num] |= regs[1] ;
     }
-     else if(inst.opcode =="010")
+    else if (inst.opcode == "010")
     {
-        regs[reg_num] ^= value ;
+
+        regs[reg_num] ^= regs[1] ;
     }
     else if (inst.opcode == "1111")
     {
+
         exit(0);
     }
 }
@@ -103,13 +129,13 @@ int main()
     vector<int> regs(8, 0);
     int pc = 0;
     Instruction ir;
-
+    Memory memory(1024);
     while (pc < instructions.size())
     {
         ir = instructions[pc];
-        executeInstruction(ir, regs);
+        executeInstruction(ir, regs, memory);
         pc++;
     }
-
+     cout<<pc;
     return 0;
 }
