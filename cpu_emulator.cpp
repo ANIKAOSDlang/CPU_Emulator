@@ -48,42 +48,55 @@ vector<Instruction> readInstructions(string filename)
 
 void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory)
 {
-    int reg_num = 0;
+
     regs[1] = inst.operand1;
 
     if (inst.opcode == "00")
     {
 
-        regs[reg_num] = memory.read(regs[1] );
+        regs[0] = memory.read(regs[1]);
     }
     else if (inst.opcode == "01")
     {
 
-        regs[reg_num] += regs[1] ;
+        regs[0] += regs[1];
     }
     else if (inst.opcode == "10")
     {
-        memory.write(regs[1] , regs[reg_num]);
+        memory.write(regs[1], regs[0]);
     }
     else if (inst.opcode == "11")
     {
 
-        regs[reg_num] -= regs[1] ;
+        regs[0] -= regs[1];
     }
     else if (inst.opcode == "000")
     {
 
-        regs[reg_num] &= regs[1] ;
+        regs[0] &= regs[1];
     }
     else if (inst.opcode == "001")
     {
 
-        regs[reg_num] |= regs[1] ;
+        regs[0] |= regs[1];
     }
     else if (inst.opcode == "010")
     {
 
-        regs[reg_num] ^= regs[1] ;
+        regs[0] ^= regs[1];
+    }
+    else if (inst.opcode == "100")
+    {
+        cout << "Enter an integer: ";
+        cin >> regs[1];
+        regs[0] = memory.read(regs[1]);
+    }
+    else if (inst.opcode == "110")
+    {
+        string value;
+        cout << "Enter a string: ";
+        cin >> value;
+        cout<< value;
     }
     else if (inst.opcode == "1111")
     {
@@ -100,7 +113,11 @@ map<string, string> opcodeMap = {
     {"AND", "000"},
     {"OR", "001"},
     {"XOR", "010"},
-    {"HALT", "1111"}};
+    {"INPUT_INT", "100"},
+    {"INPUT_STRING", "110"},
+
+    {"HALT", "1111"},
+};
 
 void assemble(string filename)
 {
@@ -135,7 +152,7 @@ int main()
         ir = instructions[pc];
         executeInstruction(ir, regs, memory);
         pc++;
-    }
-     cout<<pc;
+    };
+    
     return 0;
 }
