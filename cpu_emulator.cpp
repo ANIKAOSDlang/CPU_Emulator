@@ -4,7 +4,32 @@
 #include <vector>
 #include <map>
 using namespace std;
+int binaryToDecimal(string binary)
+{
+    int decimal = 0;
+    int power = 0;
 
+    for (int i = binary.size() - 1; i >= 0; i--)
+    {
+        if (binary[i] == '1')
+        {
+            decimal += pow(2, power);
+        }
+        power++;
+    }
+
+    return decimal;
+}
+void decToBinary(int n, vector<int> &binaryNum)
+{
+
+    while (n > 0)
+    {
+        binaryNum.push_back(n % 2);
+        n /= 2;
+    }
+    reverse(binaryNum.begin(), binaryNum.end());
+}
 struct Instruction
 {
     string opcode;
@@ -49,7 +74,7 @@ vector<Instruction> readInstructions(string filename)
 void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory)
 {
 
-    regs[1] = inst.operand1;
+    regs[1] = binaryToDecimal(to_string(inst.operand1));
 
     if (inst.opcode == "00")
     {
@@ -89,6 +114,16 @@ void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory)
     {
         cout << "Enter an integer: ";
         cin >> regs[1];
+        vector<int> binaryNum;
+        string binary_num = "";
+        decToBinary(regs[1], binaryNum);
+        for (int num : binaryNum)
+        {
+            binary_num += to_string(num);
+        }
+
+        cout << binary_num << endl;
+
         regs[0] = memory.read(regs[1]);
     }
     else if (inst.opcode == "110")
@@ -96,7 +131,7 @@ void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory)
         string value;
         cout << "Enter a string: ";
         cin >> value;
-        cout<< value;
+        cout << value;
     }
     else if (inst.opcode == "1111")
     {
@@ -115,7 +150,6 @@ map<string, string> opcodeMap = {
     {"XOR", "010"},
     {"INPUT_INT", "100"},
     {"INPUT_STRING", "110"},
-
     {"HALT", "1111"},
 };
 
@@ -128,8 +162,22 @@ void assemble(string filename)
     while (getline(inputFile, line))
     {
         istringstream iss(line);
-        string opcode, operand1, operand2;
+        vector<int> binaryNum;
+
+        string opcode, operand1 = "", operand2 = "";
         iss >> opcode >> operand1 >> operand2;
+        if (operand1 != "")
+        {
+            int num;
+            stringstream ss(operand1);
+            ss >> num;
+            decToBinary(num, binaryNum);
+            operand1 = "";
+            for (int num : binaryNum)
+            {
+                operand1 += to_string(num);
+            }
+        }
         string machineCode = opcodeMap[opcode] + " " + operand1 + " " + operand2;
         outputFile << machineCode << endl;
     }
@@ -153,6 +201,6 @@ int main()
         executeInstruction(ir, regs, memory);
         pc++;
     };
-    
+
     return 0;
 }
