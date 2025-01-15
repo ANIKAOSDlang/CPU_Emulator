@@ -71,7 +71,7 @@ vector<Instruction> readInstructions(string filename)
     return instructions;
 }
 
-void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory)
+void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory,int &pc)
 {
 
     regs[1] = binaryToDecimal(to_string(inst.operand1));
@@ -137,6 +137,26 @@ void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory)
     {
 
         exit(0);
+    }    
+    else if (inst.opcode == "011")
+    { 
+        if (regs[0] == regs[1])
+        {
+            pc = binaryToDecimal(to_string(inst.operand2));
+        }
+    }
+    else if (inst.opcode == "101")
+    {                  
+        regs[1] = pc + 1; 
+        pc = binaryToDecimal(to_string(inst.operand1));
+    }
+    else if (inst.opcode == "111")
+    { 
+        pc = regs[1];
+    }
+    else
+    {
+        cout << "Invalid opcode: " << inst.opcode << endl;
     }
 }
 
@@ -151,6 +171,9 @@ map<string, string> opcodeMap = {
     {"INPUT_INT", "100"},
     {"INPUT_STRING", "110"},
     {"HALT", "1111"},
+    {"BEQ", "011"},
+    {"JAL", "101"},
+    {"JR", "111"},
 };
 
 void assemble(string filename)
@@ -198,7 +221,7 @@ int main()
     while (pc < instructions.size())
     {
         ir = instructions[pc];
-        executeInstruction(ir, regs, memory);
+        executeInstruction(ir, regs, memory,pc);
         pc++;
     };
 
