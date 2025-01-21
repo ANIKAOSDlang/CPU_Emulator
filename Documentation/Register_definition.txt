@@ -1,0 +1,4 @@
+R0 is the main storage register
+R1 is the temporary input register
+R2 is display register
+R3-R7 is general purpose register

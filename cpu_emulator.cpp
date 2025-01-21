@@ -4,6 +4,31 @@
 #include <vector>
 #include <map>
 using namespace std;
+map<string, string> opcodeMap = {
+    {"LOAD", "00"},
+    {"ADD", "01"},
+    {"STORE", "10"},
+    {"SUB", "11"},
+    {"AND", "000"},
+    {"OR", "001"},
+    {"XOR", "010"},
+    {"INPUT_INT", "100"},
+    {"INPUT_STRING", "110"},
+    {"HALT", "1111"},
+    {"BEQ", "011"},
+    {"JAL", "101"},
+    {"JR", "111"},
+    {"R0", "0000"},
+    {"R1", "0001"},
+    {"R2", "0010"},
+    {"R3", "0011"},
+    {"R4", "0100"},
+    {"R5", "0101"},
+    {"R6", "0110"},
+    {"R7", "0111"},
+    {"MOV", "1000"},
+    {"DIS", "1001"}};
+
 int binaryToDecimal(string binary)
 {
     int decimal = 0;
@@ -20,8 +45,10 @@ int binaryToDecimal(string binary)
 
     return decimal;
 }
-void decToBinary(int n, vector<int> &binaryNum)
+void decToBinary(int n, string &binary_value)
 {
+
+    vector<int> binaryNum;
 
     while (n > 0)
     {
@@ -29,30 +56,70 @@ void decToBinary(int n, vector<int> &binaryNum)
         n /= 2;
     }
     reverse(binaryNum.begin(), binaryNum.end());
+    for (int num : binaryNum)
+    {
+        binary_value += to_string(num);
+    }
 }
 struct Instruction
 {
-    string opcode;
-    int operand1, operand2;
+    string opcode, operand1, operand2;
 };
 class Memory
 {
 public:
-    Memory(int size) : memory(size, 0) {}
+    int num = 0;
+    vector<pair<string, string>> memory;
 
-    int read(int address)
+    Memory(int size) : memory(size) {}
+
+    string read(string address)
     {
-        return address;
+        int val;
+        val = findPairIndex(address);
+        if (val != -1)
+        {
+            return memory[val].second;
+        }
+        else
+        {
+            return "";
+        }
+    }
+    int findPairIndex(string searchValue)
+    {
+        auto it = find_if(memory.begin(), memory.end(),
+                          [searchValue](const pair<string, string> &p)
+                          {
+                              return p.first == searchValue;
+                          });
+
+        if (it != memory.end())
+        {
+            return distance(memory.begin(), it);
+        }
+        else
+        {
+            return -1;
+        }
     }
 
-    void write(int address, int value)
+    string write(string address, string value)
     {
-        memory[address] = value;
-        cout << memory[address] << endl;
-    }
+        int val;
+        val = findPairIndex(address);
+        if (val != -1)
+        {
+            memory[val].second = value;
+            return memory[val].second;
+        }
 
-private:
-    vector<int> memory;
+        else
+        {
+            memory.push_back({address, value});
+            return memory.back().second;
+        }
+    }
 };
 vector<Instruction> readInstructions(string filename)
 {
@@ -71,62 +138,100 @@ vector<Instruction> readInstructions(string filename)
     return instructions;
 }
 
-void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory,int &pc)
+void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory, int &pc)
 {
+    int *reg;
+    string reg_name = "";
+    if (inst.operand1 == "0000")
+    {
+        reg = &regs[0];
+        reg_name = inst.operand1;
+    }
+    else if (inst.operand1 == "0001")
+    {
+        reg = &regs[1];
+        reg_name = inst.operand1;
+    }
+    else if (inst.operand1 == "0010")
+    {
+        reg = &regs[2];
+        reg_name = inst.operand1;
+    }
+    else if (inst.operand1 == "0011")
+    {
+        reg = &regs[3];
+        reg_name = inst.operand1;
+    }
+    else if (inst.operand1 == "0100")
+    {
+        reg = &regs[4];
+        reg_name = inst.operand1;
+    }
+    else if (inst.operand1 == "0101")
+    {
+        reg = &regs[5];
+        reg_name = inst.operand1;
+    }
+    else if (inst.operand1 == "0110")
+    {
+        reg = &regs[6];
+        reg_name = inst.operand1;
+    }
+    else if (inst.operand1 == "0111")
+    {
+        reg = &regs[7];
+        reg_name = inst.operand1;
+    }
 
-    regs[1] = binaryToDecimal(to_string(inst.operand1));
+    regs[1] = binaryToDecimal(inst.operand2); // Value always stores to R1 register
 
-    if (inst.opcode == "00")
+    if (inst.opcode == "00") // load
     {
 
-        regs[0] = memory.read(regs[1]);
+        cout << binaryToDecimal(memory.write("0001", inst.operand2)) << endl;
     }
-    else if (inst.opcode == "01")
+    else if (inst.opcode == "01") // add
     {
 
-        regs[0] += regs[1];
+        *reg += regs[1];
     }
-    else if (inst.opcode == "10")
+    else if (inst.opcode == "10") // store
     {
-        memory.write(regs[1], regs[0]);
+        string binary_value = "";
+        decToBinary(*reg, binary_value);
+        memory.write(reg_name, binary_value);
     }
-    else if (inst.opcode == "11")
-    {
-
-        regs[0] -= regs[1];
-    }
-    else if (inst.opcode == "000")
+    else if (inst.opcode == "11") // sub
     {
 
-        regs[0] &= regs[1];
+        *reg -= regs[1];
     }
-    else if (inst.opcode == "001")
+    else if (inst.opcode == "000") // and
     {
 
-        regs[0] |= regs[1];
+        *reg &= regs[1];
     }
-    else if (inst.opcode == "010")
+    else if (inst.opcode == "001") // or
     {
 
-        regs[0] ^= regs[1];
+        *reg |= regs[1];
     }
-    else if (inst.opcode == "100")
+    else if (inst.opcode == "010") // xor
+    {
+
+        *reg ^= regs[1];
+    }
+    else if (inst.opcode == "100") // integer input
     {
         cout << "Enter an integer: ";
         cin >> regs[1];
-        vector<int> binaryNum;
-        string binary_num = "";
-        decToBinary(regs[1], binaryNum);
-        for (int num : binaryNum)
-        {
-            binary_num += to_string(num);
-        }
+        string binary_value = "";
+        decToBinary(regs[1], binary_value);
+        cout << binary_value << endl;
 
-        cout << binary_num << endl;
-
-        regs[0] = memory.read(regs[1]);
+        memory.write(reg_name, binary_value);
     }
-    else if (inst.opcode == "110")
+    else if (inst.opcode == "110")//string input
     {
         string value;
         cout << "Enter a string: ";
@@ -137,44 +242,50 @@ void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory,int
     {
 
         exit(0);
-    }    
-    else if (inst.opcode == "011")
-    { 
-        if (regs[0] == regs[1])
+    }
+    else if (inst.opcode == "011") // BEQ
+    {
+        if (regs[0] == *reg)
         {
-            pc = binaryToDecimal(to_string(inst.operand2));
+            pc = binaryToDecimal((inst.operand2));
         }
     }
-    else if (inst.opcode == "101")
-    {                  
-        regs[1] = pc + 1; 
-        pc = binaryToDecimal(to_string(inst.operand1));
+    else if (inst.opcode == "101") // JAL
+    {
+        *reg = pc + 1;
+        pc = binaryToDecimal((inst.operand2));
     }
-    else if (inst.opcode == "111")
-    { 
-        pc = regs[1];
+    else if (inst.opcode == "111") // JR
+    {
+        pc = *reg;
+    }
+    else if (inst.opcode == "1000")//MOV
+    {
+        string val = memory.read(inst.operand2);
+        if (val != "")
+        {
+            *reg = binaryToDecimal(val);
+            memory.write(reg_name, val);
+        }
+        else
+        {
+            cout << "Error! Value does not exist " << endl
+            <<"Code exit with value 0"<<endl;
+            exit(0);
+        }
+    }
+    else if (inst.opcode == "1001")//display
+    {
+        cout << *reg << endl;
     }
     else
     {
-        cout << "Invalid opcode: " << inst.opcode << endl;
+        cout<<"Error in line: "<<pc+1<<endl
+        <<"Invalid code input"<<endl;
+        exit(0);
     }
 }
 
-map<string, string> opcodeMap = {
-    {"LOAD", "00"},
-    {"ADD", "01"},
-    {"STORE", "10"},
-    {"SUB", "11"},
-    {"AND", "000"},
-    {"OR", "001"},
-    {"XOR", "010"},
-    {"INPUT_INT", "100"},
-    {"INPUT_STRING", "110"},
-    {"HALT", "1111"},
-    {"BEQ", "011"},
-    {"JAL", "101"},
-    {"JR", "111"},
-};
 
 void assemble(string filename)
 {
@@ -185,23 +296,21 @@ void assemble(string filename)
     while (getline(inputFile, line))
     {
         istringstream iss(line);
-        vector<int> binaryNum;
 
-        string opcode, operand1 = "", operand2 = "";
+        string opcode, operand1 = "", operand2 = "", machineCode = "";
         iss >> opcode >> operand1 >> operand2;
-        if (operand1 != "")
+        try
         {
-            int num;
-            stringstream ss(operand1);
-            ss >> num;
-            decToBinary(num, binaryNum);
-            operand1 = "";
-            for (int num : binaryNum)
-            {
-                operand1 += to_string(num);
-            }
+            int check = stoi(operand2);
+            operand2 = "";
+            decToBinary(check, operand2);
+            machineCode = opcodeMap[opcode] + " " + opcodeMap[operand1] + " " + operand2;
         }
-        string machineCode = opcodeMap[opcode] + " " + operand1 + " " + operand2;
+        catch (const std::exception &e)
+        {
+            machineCode = opcodeMap[opcode] + " " + opcodeMap[operand1] + " " + opcodeMap[operand2];
+        }
+
         outputFile << machineCode << endl;
     }
 
@@ -221,9 +330,12 @@ int main()
     while (pc < instructions.size())
     {
         ir = instructions[pc];
-        executeInstruction(ir, regs, memory,pc);
+        executeInstruction(ir, regs, memory, pc);
         pc++;
     };
-
-    return 0;
+    /*for(int i=0;i<memory.memory.size();i++)
+       {
+        cout<<memory.memory[i].first<<" "<<memory.memory[i].second<<endl;
+       }
+        return 0;*/
 }
