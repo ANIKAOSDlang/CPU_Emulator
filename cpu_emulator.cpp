@@ -28,7 +28,88 @@ map<string, string> opcodeMap = {
     {"R7", "0111"},
     {"MOV", "1000"},
     {"DIS", "1001"}};
+string bitwiseOr(string bin1, string bin2) {
+    int n1 = bin1.length();
+    int n2 = bin2.length();
 
+    if (n1 < n2) {
+        bin1.insert(0, n2 - n1, '0');
+    } else if (n2 < n1) {
+        bin2.insert(0, n1 - n2, '0');
+    }
+
+    int n = max(n1, n2);
+    string result = "";
+
+    for (int i = 0; i < n; i++) {
+        if (bin1[i] == '1' || bin2[i] == '1') {
+            result += '1';
+        } else {
+            result += '0';
+        }
+    }
+
+    return result;
+}
+string binarySubtract(string bin1, string bin2) {
+    int n1 = bin1.length();
+    int n2 = bin2.length();
+
+    if (n1 < n2) {
+        bin1.insert(0, n2 - n1, '0');
+    } else if (n2 < n1) {
+        bin2.insert(0, n1 - n2, '0');
+    }
+
+    int n = max(n1, n2); 
+    string result = "";
+    int borrow = 0;
+
+    for (int i = n - 1; i >= 0; i--) {
+        int bit1 = bin1[i] - '0';
+        int bit2 = bin2[i] - '0';
+
+        int diff = bit1 - bit2 - borrow;
+
+        if (diff >= 0) {
+            result += to_string(diff);
+            borrow = 0;
+        } else {
+            result += to_string(diff + 2); 
+            borrow = 1;
+        }
+    }
+
+    reverse(result.begin(), result.end()); 
+
+    int firstOne = result.find_first_not_of('0');
+    if (firstOne == string::npos) {
+        return "0"; 
+    }
+    return result.substr(firstOne);
+}
+string addBinary(string a, string b) {
+    string result = "";
+    int carry = 0;
+    int i = a.length() - 1;
+    int j = b.length() - 1;
+
+    while (i >= 0 || j >= 0 || carry > 0) {
+        int bitA = (i >= 0) ? (a[i] - '0') : 0;
+        int bitB = (j >= 0) ? (b[j] - '0') : 0;
+
+        int sum = bitA + bitB + carry;
+
+        result += (sum % 2) + '0'; 
+        carry = sum / 2;
+
+        i--;
+        j--;
+    }
+
+    reverse(result.begin(), result.end());
+    return result;
+}
 int binaryToDecimal(string binary)
 {
     int decimal = 0;
@@ -138,9 +219,9 @@ vector<Instruction> readInstructions(string filename)
     return instructions;
 }
 
-void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory, int &pc)
+void executeInstruction(Instruction &inst, vector<string> &regs, Memory &memory, int &pc)
 {
-    int *reg;
+    string *reg;
     string reg_name = "";
     if (inst.operand1 == "0000")
     {
@@ -183,7 +264,7 @@ void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory, in
         reg_name = inst.operand1;
     }
 
-    regs[1] = binaryToDecimal(inst.operand2); // Value always stores to R1 register
+    regs[1] = inst.operand2; // Value always stores to R1 register
 
     if (inst.opcode == "00") // load
     {
@@ -193,43 +274,41 @@ void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory, in
     else if (inst.opcode == "01") // add
     {
 
-        *reg += regs[1];
+        *reg =addBinary(*reg, regs[1]);
     }
     else if (inst.opcode == "10") // store
     {
-        string binary_value = "";
-        decToBinary(*reg, binary_value);
-        memory.write(reg_name, binary_value);
+        memory.write(reg_name, *reg);
     }
     else if (inst.opcode == "11") // sub
     {
 
-        *reg -= regs[1];
+        *reg =binarySubtract(*reg, regs[1]);
     }
     else if (inst.opcode == "000") // and
     {
 
-        *reg &= regs[1];
+        *reg = bitwiseOr(*reg,reg[1]);
     }
     else if (inst.opcode == "001") // or
     {
 
-        *reg |= regs[1];
+        //*reg |= regs[1];
     }
     else if (inst.opcode == "010") // xor
     {
 
-        *reg ^= regs[1];
+        //*reg ^= regs[1];
     }
     else if (inst.opcode == "100") // integer input
     {
         cout << "Enter an integer: ";
-        cin >> regs[1];
-        string binary_value = "";
-        decToBinary(regs[1], binary_value);
-        cout << binary_value << endl;
+        int input;
+        cin>>input;
+        decToBinary(input,reg[1]);
+        cout << reg[1] << endl;
 
-        memory.write(reg_name, binary_value);
+        memory.write(reg_name, reg[1]);
     }
     else if (inst.opcode == "110")//string input
     {
@@ -252,20 +331,20 @@ void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory, in
     }
     else if (inst.opcode == "101") // JAL
     {
-        *reg = pc + 1;
+        pc++;
         pc = binaryToDecimal((inst.operand2));
     }
     else if (inst.opcode == "111") // JR
     {
-        pc = *reg;
+        pc = binaryToDecimal(*reg);
     }
     else if (inst.opcode == "1000")//MOV
     {
         string val = memory.read(inst.operand2);
         if (val != "")
         {
-            *reg = binaryToDecimal(val);
-            memory.write(reg_name, val);
+            *reg = val;
+            memory.write(reg_name, *reg);
         }
         else
         {
@@ -276,7 +355,7 @@ void executeInstruction(Instruction &inst, vector<int> &regs, Memory &memory, in
     }
     else if (inst.opcode == "1001")//display
     {
-        cout << *reg << endl;
+        cout << binaryToDecimal(*reg) << endl;
     }
     else
     {
@@ -323,7 +402,7 @@ int main()
     assemble("instructions.txt");
     vector<Instruction> instructions = readInstructions("machine_code.txt");
 
-    vector<int> regs(8, 0);
+    vector<string> regs(8, "");
     int pc = 0;
     Instruction ir;
     Memory memory(1024);
